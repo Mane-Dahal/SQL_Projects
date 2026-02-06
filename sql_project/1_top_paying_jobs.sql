@@ -1,8 +1,8 @@
 /*
-Question: What are the top-paying data analyst jobs?
-- Identify the top 10 highest-paying Data Analyst roles that are available remotely.
+Question: What are the top-paying Data Engineer jobs?
+- Identify the top 10 highest-paying Data Engineer roles that are available remotely.
 - Focus on job postings with specified salaries (remove nulls).
-- Why? Aims to highlight the top-paying opportunities for Data Analysts, offering insights into employment options and location flexibility.
+- Why? Aims to highlight the top-paying opportunities for Data Engineer, offering insights into employment options and location flexibility.
 */
 
 SELECT
@@ -17,7 +17,7 @@ FROM
     job_postings_fact AS job_posting  
 LEFT JOIN company_dim AS companies ON job_posting.company_id = companies.company_id    
 WHERE
-    job_title_short = 'Data Analyst' AND
+    job_title_short = 'Data Engineer' AND
     job_location = 'Anywhere' AND
     salary_year_avg IS NOT NULL 
 ORDER BY
