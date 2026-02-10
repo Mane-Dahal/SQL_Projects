@@ -16,12 +16,12 @@ A data-driven investigation into the high-paying and most in-demand roles for Da
 
 #### **1. Top Paying Data Engineer Jobs (Query 1)**
 
-![Top Paying Jobs](assets\1_top_paying_jobs.png)
+![Top Paying Jobs](assets/1_top_paying_jobs.png)
 The analysis of remote roles shows that top salaries reach up to **$325,000**. Companies like **Engtal** and **Durlston Partners** lead the market in high-compensation remote offers.
 
 #### **2. Skills for Top Paying Jobs (Query 2)**
 
-![Top Paying Job Skills](assets\2_top_paying_job_skills.png)
+![Top Paying Job Skills](assets/2_top_paying_job_skills.png)
 This chart explores the specific skills mentioned in the top 10 highest-paying roles. It reveals that while SQL is a baseline, **Python** and **Spark** are the primary drivers for reaching the absolute highest salary brackets ($300k+).
 
 ---
