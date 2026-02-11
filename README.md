@@ -54,15 +54,17 @@ Niche technical expertise and backend frameworks command the highest salaries. L
 
 #### **5. Optimal Skills: The "Sweet Spot" (Query 5)**
 
-These skills represent the best ROI. They are highly sought after by employers while still offering top-tier salaries.
+If you want the absolute best **5 Optimal Skills** based on your data, you have to look for the "Sweet Spot." These are the skills where the salary is high, but there are also plenty of jobs available so you aren't just chasing a ghost.
 
-| Skill | Demand Count | Avg. Salary |
-| --- | --- | --- |
-| **Kafka** | 872 | $143,086 |
-| **Scala** | 794 | $143,161 |
-| **Snowflake** | 1,072 | $137,426 |
-| **Redshift** | 780 | $139,527 |
-| **Airflow** | 737 | $137,262 |
+Here are the top 5, ranked by a mix of how many companies are hiring and how much they pay:
+
+| Rank | Skill | Demand (Jobs) | Avg. Salary | Why it made the Top 5 |
+| --- | --- | --- | --- | --- |
+| **1** | **Java** | 1,154 | $137,307 | **The King of Demand.** It has the most job openings, making it the safest bet for getting hired. |
+| **2** | **Snowflake** | 1,072 | $137,426 | **The Cloud Leader.** Almost every major company is moving to Snowflake, so it's a "must-know" right now. |
+| **3** | **Kafka** | 872 | $143,086 | **The Top Earner.** It has the highest salary on this list. Companies pay extra because handling real-time data is hard. |
+| **4** | **Scala** | 794 | $143,161 | **The High-End Niche.** Very high pay and used heavily in big data processing with Spark. |
+| **5** | **Redshift** | 780 | $139,527 | **The Amazon Essential.** Since so many companies use AWS, Redshift skills are always in high demand. |
 
 ---
 
@@ -76,15 +78,20 @@ SELECT
     job_id,
     job_title,
     job_location,
+    job_schedule_type,
     salary_year_avg,
-    name AS company_name
-FROM job_postings_fact
-LEFT JOIN company_dim ON job_postings_fact.company_id = company_dim.company_id
-WHERE job_title_short = 'Data Engineer' 
-    AND job_location = 'Anywhere' 
-    AND salary_year_avg IS NOT NULL
-ORDER BY salary_year_avg DESC
-LIMIT 10;
+    job_posted_date,
+    companies.name AS company
+FROM
+    job_postings_fact AS job_posting  
+LEFT JOIN company_dim AS companies ON job_posting.company_id = companies.company_id    
+WHERE
+    job_title_short = 'Data Engineer' AND
+    job_location = 'Anywhere' AND
+    salary_year_avg IS NOT NULL 
+ORDER BY
+    salary_year_avg DESC    
+LIMIT 10 
 
 ```
 
@@ -95,16 +102,32 @@ LIMIT 10;
 
 ```sql
 WITH top_paying_jobs AS (
-    SELECT job_id, salary_year_avg
-    FROM job_postings_fact
-    WHERE job_title_short = 'Data Engineer' AND salary_year_avg IS NOT NULL
-    ORDER BY salary_year_avg DESC
+    SELECT
+        job_id,
+        job_title,
+        salary_year_avg,
+        companies.name AS company
+    FROM
+        job_postings_fact AS job_posting  
+    LEFT JOIN company_dim AS companies ON job_posting.company_id = companies.company_id    
+    WHERE
+        job_title_short = 'Data Engineer' AND
+        job_location = 'Anywhere' AND
+        salary_year_avg IS NOT NULL 
+    ORDER BY
+        salary_year_avg DESC    
     LIMIT 10
 )
-SELECT top_paying_jobs.*, skills
-FROM top_paying_jobs
-INNER JOIN skills_job_dim ON top_paying_jobs.job_id = skills_job_dim.job_id
-INNER JOIN skills_dim ON skills_job_dim.skill_id = skills_dim.skill_id;
+
+SELECT 
+    top_paying_jobs.*,
+    skills.skills
+FROM 
+    top_paying_jobs
+INNER JOIN skills_job_dim AS skills_dim ON top_paying_jobs.job_id = skills_dim.job_id
+INNER JOIN skills_dim AS skills ON skills_dim.skill_id = skills.skill_id
+ORDER BY
+    salary_year_avg DESC
 
 ```
 
@@ -114,13 +137,18 @@ INNER JOIN skills_dim ON skills_job_dim.skill_id = skills_dim.skill_id;
 <summary>Query 3: Most In-Demand Skills</summary>
 
 ```sql
-SELECT skills, COUNT(skills_job_dim.job_id) AS demand_count
-FROM job_postings_fact
-INNER JOIN skills_job_dim ON job_postings_fact.job_id = skills_job_dim.job_id
-INNER JOIN skills_dim ON skills_job_dim.skill_id = skills_dim.skill_id
-WHERE job_title_short = 'Data Engineer'
-GROUP BY skills
-ORDER BY demand_count DESC
+SELECT 
+    skills.skills,
+    COUNT(skills_dim.job_id) AS demand_count
+FROM job_postings_fact AS job_posting
+INNER JOIN skills_job_dim AS skills_dim ON job_posting.job_id = skills_dim.job_id
+INNER JOIN skills_dim AS skills ON skills_dim.skill_id = skills.skill_id
+WHERE
+    job_title_short = 'Data Engineer'
+GROUP BY
+    skills.skills
+ORDER BY
+    demand_count DESC    
 LIMIT 10;
 
 ```
@@ -131,14 +159,18 @@ LIMIT 10;
 <summary>Query 4: Top Paying Skills</summary>
 
 ```sql
-SELECT skills, ROUND(AVG(salary_year_avg), 0) AS avg_salary
-FROM job_postings_fact
-INNER JOIN skills_job_dim ON job_postings_fact.job_id = skills_job_dim.job_id
-INNER JOIN skills_dim ON skills_job_dim.skill_id = skills_dim.skill_id
-WHERE job_title_short = 'Data Engineer' AND salary_year_avg IS NOT NULL
-GROUP BY skills
+SELECT
+    skills.skills,
+    ROUND(AVG(salary_year_avg) ,2) AS avg_salary
+FROM job_postings_fact AS job_posting
+INNER JOIN skills_job_dim AS skills_dim ON job_posting.job_id = skills_dim.job_id
+INNER JOIN skills_dim AS skills ON skills_dim.skill_id = skills.skill_id 
+WHERE job_title_short = 'Data Engineer' 
+    AND salary_year_avg IS NOT NULL
+GROUP BY
+    skills
 ORDER BY avg_salary DESC
-LIMIT 25;
+LIMIT 25; 
 
 ```
 
@@ -148,15 +180,75 @@ LIMIT 25;
 <summary>Query 5: Optimal Skills</summary>
 
 ```sql
-SELECT skills_dim.skills, COUNT(skills_job_dim.job_id) AS demand_count, ROUND(AVG(job_postings_fact.salary_year_avg), 0) AS avg_salary
-FROM job_postings_fact
-INNER JOIN skills_job_dim ON job_postings_fact.job_id = skills_job_dim.job_id
-INNER JOIN skills_dim ON skills_job_dim.skill_id = skills_dim.skill_id
-WHERE job_title_short = 'Data Engineer' AND salary_year_avg IS NOT NULL
-GROUP BY skills_dim.skill_id
-HAVING COUNT(skills_job_dim.job_id) > 10
-ORDER BY avg_salary DESC, demand_count DESC
-LIMIT 25;
+WITH skills_demand AS(
+    SELECT
+        skills.skill_id,
+        skills.skills,
+        COUNT(skills_dim.job_id) AS demand_count
+    FROM job_postings_fact AS job_posting
+    INNER JOIN skills_job_dim AS skills_dim ON job_posting.job_id = skills_dim.job_id
+    INNER JOIN skills_dim AS skills ON skills_dim.skill_id = skills.skill_id
+    WHERE
+        job_title_short = 'Data Engineer'
+        AND salary_year_avg IS NOT NULL   
+    GROUP BY
+        skills.skill_id    
+), average_salary AS(
+    SELECT
+        skills.skill_id,
+        skills.skills,
+        ROUND(AVG(salary_year_avg) , 3) AS avg_salary
+    FROM
+        job_postings_fact AS job_posting
+    INNER JOIN skills_job_dim AS skills_dim ON job_posting.job_id = skills_dim.job_id
+    INNER JOIN skills_dim AS skills ON skills_dim.skill_id = skills.skill_id  
+    WHERE
+        job_title_short = 'Data Engineer' 
+        AND salary_year_avg IS NOT NULL   
+    GROUP BY
+        skills.skill_id    
+)   
+
+SELECT
+    skills_demand.skill_id,
+    skills_demand.skills,
+    skills_demand.demand_count,
+    average_salary.avg_salary
+FROM
+    skills_demand
+INNER JOIN average_salary ON skills_demand.skill_id = average_salary.skill_id 
+WHERE
+    demand_count >= 10
+ORDER BY
+    avg_salary DESC,
+    demand_count DESC
+LIMIT 25;   
+
+
+-- rewriting this same query more concisely
+SELECT
+    skills.skill_id,
+    job_posting.job_title_short AS job_title,
+    skills.skills,
+    COUNT(skills_dim.job_id) AS demand_count,
+    ROUND(AVG(salary_year_avg) ,3) AS avg_salary
+FROM
+job_postings_fact AS job_posting
+INNER JOIN skills_job_dim AS skills_dim ON job_posting.job_id = skills_dim.job_id
+INNER JOIN skills_dim AS skills ON skills_dim.skill_id = skills.skill_id
+WHERE
+    job_title_short = 'Data Engineer'
+    AND salary_year_avg IS NOT NULL
+GROUP BY
+    skills.skill_id,
+    job_posting.job_title_short
+HAVING
+    COUNT(skills_dim.job_id) >= 10    
+ORDER BY 
+    avg_salary DESC,
+    demand_count DESC
+LIMIT 25;            
+
 
 ```
 
